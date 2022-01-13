@@ -65,7 +65,6 @@ public class Indexer  {
 			
 			if ( res.getJSONArray("results").length() >0 )
 				books.add(new Book(resultsArray.getJSONObject(0)));
-
 			
 		}
 				System.out.println(books.size());
