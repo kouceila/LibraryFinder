@@ -11,6 +11,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,12 +24,16 @@ import org.json.JSONObject;
 
 import data.Author;
 import data.Book;
+import data.Keyword;
+import utils.Stemer;
 
 public class Indexer  {
 	
 	private static List<Book> books = new ArrayList<>() ; 
 	private static Map<Author, List<Integer>> authors = new HashMap<>();
 	private static Map<String, List<Integer>> titles = new HashMap<>();
+	private static Map<Keyword, List<Integer>> keywords = new HashMap<>();
+	
 	
 	
 	public static void createBookIndex() throws IOException, JSONException {
@@ -103,6 +108,59 @@ public class Indexer  {
 			}
 		}	
 	}
+	
+	public static void createKeywordsIndex() throws IOException {
+		for (Book book : books) {
+			String link = book.getFileURL();
+			URL url = new URL(link);
+			HttpURLConnection con = (HttpURLConnection) url.openConnection();
+			con.setRequestMethod("GET");
+			
+			BufferedReader reader;
+			String line;
+			StringBuilder responseContent = new StringBuilder();
+			reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+			while ((line = reader.readLine()) != null) {
+				responseContent.append(line);
+			}
+			reader.close();
+			
+			List<Keyword> res = Stemer.guessFromString(responseContent.toString());
+			
+			for( Keyword keyword : res) {
+				if ( keywords.containsKey(keyword) ) {
+					keywords.get(keyword).add(book.getId());
+				}
+				else {
+					List<Integer> bookIds = new ArrayList<>();
+					bookIds.add(book.getId());
+					keywords.put(keyword, bookIds);
+				}
+ 			}
+			
+		}
+	}
+	
+	
+	public static void writeIndexKeywords() throws FileNotFoundException, IOException {
+		if (keywords.isEmpty()) {
+			System.err.println("Index keywords is empty !");
+			return; }
+		System.err.println("Writing... !");	
+		ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(new File("keywords.ser")));
+		ois.writeObject(keywords);
+		ois.flush();
+		ois.close();	
+	}
+	
+	@SuppressWarnings("unchecked")
+	public static Map<Keyword, List<Integer>> readIndexkeywords() throws FileNotFoundException, IOException, ClassNotFoundException {
+		System.err.println("READING... !");	
+		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("keywords.ser"));
+		keywords = (Map<Keyword, List<Integer>>) ois.readObject();
+		ois.close();
+		return keywords;
+	}
 
 
 	public static void writeIndexBooks() throws FileNotFoundException, IOException {
@@ -168,6 +226,8 @@ public class Indexer  {
 		System.out.println(titles);
 		return titles;
 	}
+	
+	
 	
 	
 	
