@@ -2,9 +2,14 @@ package utils;
 
 import java.io.IOException;
 import java.io.StringReader;
+import java.util.HashSet;
+import java.util.Set;
 
+import org.apache.lucene.analysis.PorterStemFilter;
 import org.apache.lucene.analysis.TokenStream;
+import org.apache.lucene.analysis.standard.ClassicTokenizer;
 import org.apache.lucene.analysis.standard.StandardTokenizer;
+import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 
 public class Stemer {
@@ -14,7 +19,7 @@ public class Stemer {
 		  try {
 
 		    // tokenize
-		    tokenStream = new StandardTokenizer(Version.LUCENE_36, new StringReader(term));
+		    tokenStream = new ClassicTokenizer(Version.LUCENE_35, new StringReader(term));
 		    // stem
 		    tokenStream = new PorterStemFilter(tokenStream);
 
