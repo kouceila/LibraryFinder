@@ -1,11 +1,14 @@
-package data;
+package com.sorbonne.daar.data;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.sorboone.daar.utils.ConnexionHandler;
 
 public class Book implements Serializable {
 	
@@ -16,10 +19,11 @@ public class Book implements Serializable {
 	
 
 	private String fileURL;
+	private String content;
 	private String imageURL;
 	private int download_count;
 	
-	public Book(JSONObject book) throws JSONException {
+	public Book(JSONObject book) throws JSONException, IOException {
 		this.id = book.getInt("id");
 		this.title = book.getString("title");
 		JSONArray aut = book.getJSONArray("authors");
@@ -29,7 +33,14 @@ public class Book implements Serializable {
 		}
 		
 		JSONObject format = book.getJSONObject("formats");
-		this.fileURL = format.getString("text/plain");
+		if (format.has("text/plain"))
+			this.fileURL = format.getString("text/plain");
+		if( this.fileURL == null ) 
+			this.content = "";
+		else {
+			this.content = ConnexionHandler.getFileContent(this.fileURL);
+		}
+		if ( format.has("image/jpeg"))
 		this.imageURL = format.getString("image/jpeg");
 		
 		this.download_count = book.getInt("download_count");
@@ -71,6 +82,16 @@ public class Book implements Serializable {
 	}
 	public void setDownload_count(int download_count) {
 		this.download_count = download_count;
+	}
+
+
+	public String getContent() {
+		return content;
+	}
+
+
+	public void setContent(String content) {
+		this.content = content;
 	}
 	
 	

@@ -1,17 +1,15 @@
-package indexing;
+package com.sorbonne.daar.indexing;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.ProtocolException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,23 +20,25 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import data.Author;
-import data.Book;
-import data.Keyword;
-import utils.Stemer;
+import com.sorbonne.daar.data.Author;
+import com.sorbonne.daar.data.Book;
+import com.sorbonne.daar.data.Keyword;
+import com.sorbonne.daar.utils.keywords.MotCleMap;
+import com.sorboone.daar.utils.Stemer;
+
+
 
 public class Indexer  {
 	
-	private static List<Book> books = new ArrayList<>() ; 
-	private static Map<Author, List<Integer>> authors = new HashMap<>();
-	private static Map<String, List<Integer>> titles = new HashMap<>();
-	private static Map<Keyword, List<Integer>> keywords = new HashMap<>();
+	private List<Book> books = new ArrayList<>() ; 
+	private  Map<Author, List<Integer>> authors = new HashMap<>();
+	private   Map<String, List<Integer>> titles = new HashMap<>();
+	private MotCleMap keywords = new MotCleMap();
 	
 	
-	
-	public static void createBookIndex() throws IOException, JSONException {
+	public   void createBookIndex() throws IOException, JSONException {
 		
-		for (int index = 1; index < 16; index++) {
+		for (int index = 1; index < 1664; index++) {
 			URL url = new URL("https://gutendex.com/books?ids=" + index);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
@@ -76,7 +76,49 @@ public class Indexer  {
 	}
 	
 	
-	public static void createAuthorIndex() {
+	public List<Book> getBooks() {
+		return books;
+	}
+
+
+	public void setBooks(List<Book> books) {
+		this.books = books;
+	}
+
+
+	public Map<Author, List<Integer>> getAuthors() {
+		return authors;
+	}
+
+
+	public void setAuthors(Map<Author, List<Integer>> authors) {
+		this.authors = authors;
+	}
+
+
+	public Map<String, List<Integer>> getTitles() {
+		return titles;
+	}
+
+
+	public void setTitles(Map<String, List<Integer>> titles) {
+		this.titles = titles;
+	}
+
+
+	
+
+	public MotCleMap getKeywords() {
+		return keywords;
+	}
+
+
+	public void setKeywords(MotCleMap keywords) {
+		this.keywords = keywords;
+	}
+
+
+	public void createAuthorIndex() {
 		
 		for(Book book: books) {
 			List<Author> bookAuthors = book.getAuthors();
@@ -94,7 +136,7 @@ public class Indexer  {
 		
 	}
 	
-	public static void createTitleIndex() {
+	public   void createTitleIndex() {
 	
 		for(Book book: books) {
 			String title = book.getTitle();
@@ -109,9 +151,10 @@ public class Indexer  {
 		}	
 	}
 	
-	public static void createKeywordsIndex() throws IOException {
+	public   void createKeywordsIndex() throws IOException {
 		for (Book book : books) {
 			String link = book.getFileURL();
+			if (link == null) continue;
 			URL url = new URL(link);
 			HttpURLConnection con = (HttpURLConnection) url.openConnection();
 			con.setRequestMethod("GET");
@@ -128,13 +171,13 @@ public class Indexer  {
 			List<Keyword> res = Stemer.guessFromString(responseContent.toString());
 			
 			for( Keyword keyword : res) {
-				if ( keywords.containsKey(keyword) ) {
-					keywords.get(keyword).add(book.getId());
+				if ( keywords.getMotCleMap().containsKey(keyword.getStem()) ) {
+					keywords.getMotCleMap().get(keyword.getStem()).add(book.getId());
 				}
 				else {
 					List<Integer> bookIds = new ArrayList<>();
 					bookIds.add(book.getId());
-					keywords.put(keyword, bookIds);
+					keywords.getMotCleMap().put(keyword.getStem(), bookIds);
 				}
  			}
 			
@@ -142,8 +185,8 @@ public class Indexer  {
 	}
 	
 	
-	public static void writeIndexKeywords() throws FileNotFoundException, IOException {
-		if (keywords.isEmpty()) {
+	public   void writeIndexKeywords() throws FileNotFoundException, IOException {
+		if (keywords.getMotCleMap().isEmpty()) {
 			System.err.println("Index keywords is empty !");
 			return; }
 		System.err.println("Writing... !");	
@@ -154,37 +197,38 @@ public class Indexer  {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static Map<Keyword, List<Integer>> readIndexkeywords() throws FileNotFoundException, IOException, ClassNotFoundException {
+	public   MotCleMap readIndexkeywords(InputStream st) throws FileNotFoundException, IOException, ClassNotFoundException {
 		System.err.println("READING... !");	
-		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("keywords.ser"));
-		keywords = (Map<Keyword, List<Integer>>) ois.readObject();
+		ObjectInputStream ois = new ObjectInputStream(st);
+		keywords = (MotCleMap) ois.readObject();
 		ois.close();
 		return keywords;
 	}
 
 
-	public static void writeIndexBooks() throws FileNotFoundException, IOException {
+	public   void writeIndexBooks() throws FileNotFoundException, IOException {
 		if (books.isEmpty()) {
 			System.err.println("Index Books is empty !");
 			return; }
 		System.err.println("Writing... !");	
-		ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(new File("books.ser")));
+		ObjectOutputStream ois = new ObjectOutputStream(new FileOutputStream(new File("LibraryFinder/src/main/java/data/books.ser")));
 		ois.writeObject(books);
 		ois.flush();
 		ois.close();	
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static List<Book> readIndexBooks() throws FileNotFoundException, IOException, ClassNotFoundException {
+	public   List<Book> readIndexBooks(InputStream st) throws FileNotFoundException, IOException, ClassNotFoundException {
 		System.err.println("READING... !");	
-		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("books.ser"));
+		//FileInputStream fis = new FileInputStream("LibraryFinder/src/main/java/data/books.ser");
+		ObjectInputStream ois = new ObjectInputStream(st);
 		books = (List<Book>) ois.readObject();
 		ois.close();
 		return books;
 	}
 	
 	
-	public static void writeIndexAuthor() throws FileNotFoundException, IOException {
+	public   void writeIndexAuthor() throws FileNotFoundException, IOException {
 		if (authors.isEmpty()) {
 			System.err.println("Index Author is empty !");
 			return; }
@@ -196,17 +240,16 @@ public class Indexer  {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static Map<Author, List<Integer>> readIndexAuthor() throws FileNotFoundException, IOException, ClassNotFoundException {
-		System.err.println("READING... !");	
-		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("authors.ser"));
+	public   Map<Author, List<Integer>> readIndexAuthor(InputStream st) throws FileNotFoundException, IOException, ClassNotFoundException {
+
+		ObjectInputStream ois = new ObjectInputStream(st);
 		authors = (Map<Author, List<Integer>>) ois.readObject();
 		ois.close();
-		System.out.println(authors);
 		return authors;
 	}
 	
 	
-	public static void writeIndexTitle() throws FileNotFoundException, IOException {
+	public void writeIndexTitle() throws FileNotFoundException, IOException {
 		if (titles.isEmpty()) {
 			System.err.println("Index Title is empty !");
 			return; }
@@ -218,19 +261,11 @@ public class Indexer  {
 	}
 	
 	@SuppressWarnings("unchecked")
-	public static Map<String, List<Integer>> readIndexTitle() throws FileNotFoundException, IOException, ClassNotFoundException {
-		System.err.println("READING... !");	
-		ObjectInputStream ois = new ObjectInputStream(new FileInputStream("titles.ser"));
-		titles = (Map<String, List<Integer>>) ois.readObject();
-		ois.close();
-		System.out.println(titles);
-		return titles;
-	}
+	public  Map<String, List<Integer>> readIndexTitle(InputStream st) throws FileNotFoundException, IOException, ClassNotFoundException {
 	
-	
-	
-	
-	
-	
-	
+		      ObjectInputStream ois = new ObjectInputStream(st);
+				titles = (Map<String, List<Integer>>) ois.readObject();
+				ois.close();
+				return titles;
+	}	
 }

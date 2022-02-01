@@ -7,5 +7,32 @@
 >
 
   <display-name>LibraryFinder</display-name>
+  
+  <servlet>
+		<servlet-name>Finder</servlet-name>
+		<servlet-class>com.sorbonne.daar.servlets.Finder</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name>Finder</servlet-name>
+	    <url-pattern>/Finder</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+		<servlet-name>KeywordFinder</servlet-name>
+		<servlet-class>com.sorbonne.daar.servlets.KeywordFinder</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name>KeywordFinder</servlet-name>
+	    <url-pattern>/keywordFinder</url-pattern>
+  </servlet-mapping>
+  
+  <servlet>
+		<servlet-name>RegExFinder</servlet-name>
+		<servlet-class>com.sorbonne.daar.servlets.RegExFinder</servlet-class>
+	</servlet>
+	<servlet-mapping>
+	    <servlet-name>RegExFinder</servlet-name>
+	    <url-pattern>/regExFinder</url-pattern>
+  </servlet-mapping>
 
 </web-app>

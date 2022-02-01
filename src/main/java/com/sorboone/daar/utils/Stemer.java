@@ -1,4 +1,4 @@
-package utils;
+package com.sorboone.daar.utils;
 
 import java.io.IOException;
 import java.io.StringReader;
@@ -19,7 +19,7 @@ import org.apache.lucene.analysis.standard.ClassicTokenizer;
 import org.apache.lucene.analysis.tokenattributes.CharTermAttribute;
 import org.apache.lucene.util.Version;
 
-import data.Keyword;
+import com.sorbonne.daar.data.Keyword;
 
 public class Stemer {
 	public static String stem(String term) throws IOException {

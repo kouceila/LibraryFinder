@@ -1,4 +1,4 @@
-package data;
+package com.sorbonne.daar.data;
 
 import java.util.Arrays;
 import java.util.HashSet;
