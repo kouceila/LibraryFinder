@@ -4,8 +4,6 @@ package com.sorbonne.daar.servlets;
 import java.io.IOException;
 import java.io.InputStream;
 
-import java.util.List;
-
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -15,7 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.sorbonne.daar.indexing.Indexer;
 
 
-@WebServlet("/Finder")
+
 public class Finder extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Indexer indexer ;

@@ -14,7 +14,7 @@
 	</servlet>
 	<servlet-mapping>
 	    <servlet-name>Finder</servlet-name>
-	    <url-pattern>/Finder</url-pattern>
+	    <url-pattern>/finder</url-pattern>
   </servlet-mapping>
   
   <servlet>

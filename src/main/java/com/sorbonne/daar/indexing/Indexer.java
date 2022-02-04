@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.net.ConnectException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
@@ -37,42 +38,54 @@ public class Indexer  {
 	
 	
 	public   void createBookIndex() throws IOException, JSONException {
-		
-		for (int index = 1; index < 1664; index++) {
-			URL url = new URL("https://gutendex.com/books?ids=" + index);
-			HttpURLConnection con = (HttpURLConnection) url.openConnection();
-			con.setRequestMethod("GET");
-			
-			int status = con.getResponseCode();
-			System.out.println("begin" + index);
-			BufferedReader reader;
-			String line;
-			StringBuilder responseContent = new StringBuilder();
-					
-					
-			if (status >= 300) {
-				reader = new BufferedReader(new InputStreamReader(con.getErrorStream()));
-				while ((line = reader.readLine()) != null) {
-					responseContent.append(line);
+		int cpt=1;
+		int i = 1;
+		try {
+			while ( cpt < 1665) {
+				URL url = new URL("https://gutendex.com/books?ids=" + i);
+				HttpURLConnection con = (HttpURLConnection) url.openConnection();
+				con.setRequestMethod("GET");
+				
+				int status = con.getResponseCode();
+				System.out.println("begin" + i);
+				BufferedReader reader;
+				String line;
+				StringBuilder responseContent = new StringBuilder();
+						
+						
+				if (status >= 300) {
+					reader = new BufferedReader(new InputStreamReader(con.getErrorStream()));
+					while ((line = reader.readLine()) != null) {
+						responseContent.append(line);
+					}
+					reader.close();
 				}
-				reader.close();
-			}
-			else {
-				reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
-				while ((line = reader.readLine()) != null) {
-					responseContent.append(line);
+				else {
+					reader = new BufferedReader(new InputStreamReader(con.getInputStream()));
+					while ((line = reader.readLine()) != null) {
+						responseContent.append(line);
+					}
+					reader.close();
+				}	
+				
+				JSONObject res = new JSONObject(responseContent.toString());
+				JSONArray resultsArray = new JSONArray(res.getString("results"));
+				
+				if ( res.getJSONArray("results").length() >0 ) {
+					Book book = new Book(resultsArray.getJSONObject(0));
+					if ( (book.getFileURL()!=null) && ( !book.getFileURL().contains(".zip"))) {
+						books.add(book);
+						cpt ++;
+					}
+					
 				}
-				reader.close();
+				i++;
 			}	
 			
-			JSONObject res = new JSONObject(responseContent.toString());
-			JSONArray resultsArray = new JSONArray(res.getString("results"));
-			
-			if ( res.getJSONArray("results").length() >0 )
-				books.add(new Book(resultsArray.getJSONObject(0)));
-			
+		}catch(ConnectException e) {
+			System.out.print("Connection timed out");
+			i++;
 		}
-				System.out.println(books.size());
 	}
 	
 	

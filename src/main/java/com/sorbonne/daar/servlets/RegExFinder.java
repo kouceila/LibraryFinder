@@ -7,20 +7,18 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import com.sorbonne.daar.data.Book;
 import com.sorbonne.daar.indexing.Indexer;
-import com.sorboone.daar.utils.ConnexionHandler;
-import com.sorboone.daar.utils.Stemer;
+import com.sorboone.daar.utils.JsonConverter;
 
 
-@WebServlet("/RegExFinder")
 public class RegExFinder extends HttpServlet {
 	private static final long serialVersionUID = 1L;
        
@@ -41,20 +39,26 @@ public class RegExFinder extends HttpServlet {
 		
 		Indexer index = (Indexer) request.getAttribute("indexer");
 		
+		Pattern pattern = Pattern.compile(regEx);
 		for (Book book : index.getBooks()) {
 			
 			String bookContent = book.getContent();
 			if (bookContent.equals(""))
 				continue;
-			if (bookContent.matches(regEx)) {
+			Matcher matcher = pattern.matcher(bookContent);
+			
+			if (matcher.find()) {
 				booksResult.add(book);
 			}	
 		}
-		System.out.println("izannn");
-		response.getWriter().print(booksResult);
+		JSONArray arr = new JSONArray();
+		for(Book book: booksResult ) {
+			arr.put(JsonConverter.bookToJson(book));
+		}
+		response.getWriter().print(arr);
 		response.getWriter().flush();
 		}
-		catch ( IOException e) {
+		catch ( IOException | JSONException e) {
 			e.getMessage();
 		}
 		
